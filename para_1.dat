@@ -1,0 +1,17 @@
+*parameter
+h1=1200
+alpha=110
+pi = asin(1)
+h = 1900
+d = 300
+n_d = -d
+x_100 = -d - h1*tan(alpha/180*pi - pi/2)
+y_101 = h1 - 30
+x_101 = -d - y_101*tan(alpha/180*pi - pi/2)
+m_an = 5e-4
+t_thickness = 3
+a = 70
+b = 70
+a_2 = 8
+x_201=x_100-a/2
+x_202=-a/2
