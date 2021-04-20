@@ -24,9 +24,9 @@ proc masspointcreate {} {
 	}
 # define a rom property 
 proc rotaty {} {
-	global em_xyz nodeid  compid rm123
+	global em_xyz nodeid   rm123
 	set compname [clock seconds]
-	*createmark comps 1 $compid
+	# *createmark comps 1 $compid
 	set r468 [lindex $rm123 0]
 	set r469 [lindex $rm123 1]
 	set r470 [lindex $rm123 2]
@@ -62,29 +62,39 @@ proc rotaty {} {
 	*elementtype 1 1
 	}
 # erase density of the material
-proc erasdensity {compid compname} {
+proc erasdensity {compid} {
 	 
 	# global compid compname
 	# puts $compid
 	set propid [hm_getvalue comps id=$compid dataname=propertyid]
 	set matid [hm_getvalue properties id=$propid dataname=materialid]
+	set compname [hm_getvalue comps id=$compid dataname=name]
 	set erd _erd
-	*clearmark props 1
-	*createentitysameas props $propid
-	*createmarklast props 1
+	*clearmark props 1	
 	*clearmark mat 1
-	catch {*createentitysameas mat $matid }
-	*createmarklast mat 1
-	*clearmark comps 1
+	# confirm if there is property already exists
+	if [catch {hm_getvalue material name=$compname$erd dataname=id} ] {
+		*createentitysameas mat $matid
+		*createmarklast mat 1
+		set matid [hm_getmark mats 1]
+		} else {
+		set matid [hm_getvalue material name=$compname$erd dataname=id]
+		}
+	
+	if [catch {hm_getvalue material name=$compname$erd dataname=id }] {
+		*createentitysameas props $propid
+		*createmarklast props 1
+		set propid [hm_getmark props 1]
+		*setvalue props id=$propid materialid=$matid
+		*setvalue props id=$propid name=$compname$erd
+		} else {
+		set propid [hm_getvalue material name=$compname$erd dataname=id]
+	}
+	
 	*createmarklast comps 1
-	# set compnid [hm_getmark comps 1]
-	set propid [hm_getmark props 1]
-	set matid [hm_getmark mats 1]
 	*setvalue mats id=$matid name=$compname$erd 
 	set newDensity [hm_getvalue materials id=$matid dataname=Density]
-	set newDensity [expr $newDensity/1000.0]
-	*setvalue props id=$propid materialid=$matid
-	*setvalue props id=$propid name=$compname$erd
+	set newDensity [expr $newDensity/1000.0]	
 	*setvalue comps id=$compid propertyid=$propid
 	*setvalue comps id=$compid name=$compname$erd
 	*setvalue mats id=$matid Density=$newDensity
@@ -108,13 +118,12 @@ if { $len_c<2} {
 	set nodeid [hm_getmark nodes 1]
 	masspointcreate
 	rotaty
-	erasdensity $compid $compname
-	unset em_xyz compid compname nodeid
+	erasdensity $compid 
+	unset em_xyz compid compname nodeid 
 	} else {
-########################################
+##################################
 	set em_xyz [hm_getcog comps 1]
-	set rm123 [hm_getmoi comps 1 1]
-	
+	set rm123 [hm_getmoi comps 1 1]	
 	set compid [hm_getmark comps 1]
 	set compname [clock seconds]
 	*clearmark nodes 1
@@ -125,9 +134,10 @@ if { $len_c<2} {
 	masspointcreate
 	foreach cid $compid {
 	set cname [hm_getvalue comps id=$cid dataname=name]
-	erasdensity $cid $cname
+	erasdensity $cid
+	
 	}	
-
+unset em_xyz compid compname nodeid
 puts 1}
 
 *clearmark elems 1
